@@ -33,127 +33,141 @@ class ScoopMotion:
                              c.VEL_J_SCOOP_SAFE_FAST, c.ACC_J_SCOOP_SAFE_FAST)
         self.r.wait(1.0)
 
-    def _check_emergency_force(self, step_name):
-        f = self.r.tool_force()
-        self.r.log(f"{step_name} Fx={f[0]:.2f} Fy={f[1]:.2f} Fz={f[2]:.2f}")
-        if any(abs(v) >= c.F_EMERGENCY_LIMIT for v in f[:3]):
-            self.r.log(f"!!! 비상정지: 힘 한계(40N) 초과 [{step_name}] {f}")
-            return True
+    def _checked_force(self, step):
+        force = self.r.tool_force()
+        fx, fy, fz = force[:3]
+        self.r.log(f"{step} Fx={fx:.2f} Fy={fy:.2f} Fz={fz:.2f}")
+        if max(abs(fx), abs(fy), abs(fz)) >= c.F_EMERGENCY_LIMIT:
+            raise RuntimeError(f"{step}: 축별 절대 힘 한계({c.F_EMERGENCY_LIMIT:g}N) 도달")
+        return force
+
+    def _entry_baseline(self):
+        samples = []
+        for index in range(c.ENTRY_BASELINE_SAMPLES):
+            if index:
+                self.r.wait(c.ENTRY_BASELINE_SAMPLE_GAP)
+            samples.append(self._checked_force("ENTRY_BASELINE"))
+        fx, fz = (sum(sample[axis] for sample in samples) / len(samples) for axis in (0, 2))
+        self.r.log(f"ENTRY_BASELINE 평균 Fx={fx:.3f} Fz={fz:.3f}")
+        return fx, fz
+
+    def _entry_delta(self, baseline, step):
+        force = self._checked_force(step)
+        delta = math.hypot(force[0] - baseline[0], force[2] - baseline[1])
+        self.r.log(f"{step} delta_xz={delta:.2f}N")
+        if delta >= c.F_ENTRY_HARD_LIMIT_DELTA:
+            raise RuntimeError(f"{step}: 진입 델타 하드리밋({c.F_ENTRY_HARD_LIMIT_DELTA:g}N) 도달")
+        return delta
+
+    def _probe_surface(self, baseline):
+        pose = self.r.current_tcp_pose()
+        hits = 0
+        while pose[2] > c.ENTRY_MIN_Z:
+            pose[2] = max(pose[2] - c.ENTRY_Z_STEP, c.ENTRY_MIN_Z)
+            self.r.movel(pose, "ENTRY_PROBE", c.VEL_X_ICE_ENTRY_FAST, c.ACC_X_ICE_ENTRY_FAST)
+            self.r.wait(c.ENTRY_Z_SETTLE_WAIT)
+            delta = self._entry_delta(baseline, "ENTRY_PROBE")
+            hits = hits + 1 if delta >= c.F_ENTRY_DELTA else 0
+            if hits >= c.ENTRY_CONSEC_HIT_NEEDED:
+                return True
+
+        # 하한에서 접촉 후보가 나오면 같은 높이에서 마지막 샘플을 읽는다.
+        if hits == c.ENTRY_CONSEC_HIT_NEEDED - 1:
+            self.r.wait(c.ENTRY_Z_SETTLE_WAIT)
+            return self._entry_delta(baseline, "ENTRY_PROBE_LIMIT") >= c.F_ENTRY_DELTA
         return False
 
-    def _probe_ice_entry_z(self, lane_dy):
-        """P_SCOOP_PRE_ENTRY ~ P_SCOOP_M1 사이를 1mm씩 내려가며 기준값 대비
-        힘 변화량(X/Z 합성)이 F_ENTRY_DELTA를 연속 2회 넘으면 진입으로
-        판단한다. 실패 시 None을 반환한다."""
-        baseline = self.r.tool_force()
-        baseline_fx, baseline_fz = baseline[0], baseline[2]
-        self.r.log(f"ENTRY_BASELINE Fx={baseline_fx:.3f} Fz={baseline_fz:.3f}")
-
-        entry = c.with_lane_dy(c.P_SCOOP_PRE_ENTRY, lane_dy)
-        x, a, b, cc = entry[0], entry[3], entry[4], entry[5]
-        y = entry[1]
-        z = entry[2]
-        z_limit = c.with_lane_dy(c.P_SCOOP_M1, lane_dy)[2]
-
-        found_z = None
-        hit = 0
-        while z > z_limit:
-            z = z - c.ENTRY_Z_STEP
-            if z < z_limit:
-                z = z_limit
-
-            self.r.movel([x, y, z, a, b, cc], "ENTRY_PROBE", c.VEL_X_ICE_ENTRY_FAST, c.ACC_X_ICE_ENTRY_FAST)
+    def _enter_extra_depth(self, baseline):
+        pose = self.r.current_tcp_pose()
+        contact_z = pose[2]
+        depth_limit = min(c.ENTRY_EXTRA_DEPTH, contact_z - c.ENTRY_MIN_Z)
+        depth = 0.0
+        while depth < depth_limit:
+            depth = min(depth + c.ENTRY_EXTRA_STEP, depth_limit)
+            pose[2] = max(contact_z - depth, c.ENTRY_MIN_Z)
+            self.r.movel(pose, "ENTRY_EXTRA", c.VEL_X_ICE_ENTRY_FAST, c.ACC_X_ICE_ENTRY_FAST)
             self.r.wait(c.ENTRY_Z_SETTLE_WAIT)
+            self._entry_delta(baseline, "ENTRY_EXTRA")
 
-            f = self.r.tool_force()
-            dx, dz = f[0] - baseline_fx, f[2] - baseline_fz
-            delta = math.sqrt(dx * dx + dz * dz)
-            self.r.log(f"ENTRY_PROBE z={z:.2f} Fx={f[0]:.2f} Fz={f[2]:.2f} delta={delta:.2f} hit={hit}")
+    def _curl(self):
+        pose = self.r.current_tcp_pose()
+        vertical = pose[:3] + list(c.SCOOP_VERTICAL_ORIENTATION)
+        self.r.movel(vertical, "SCOOP_VERTICAL", c.VEL_X_SCOOP_CURL, c.ACC_X_SCOOP_CURL)
+        self.r.wait(c.SCOOP_STEP_SETTLE_WAIT)
+        self._checked_force("SCOOP_VERTICAL")
 
-            if delta >= c.F_ENTRY_HARD_LIMIT_DELTA:
-                self.r.log("!! ENTRY_PROBE 델타 하드리밋 초과 - 중단")
-                return None
-            if self._check_emergency_force("ENTRY_PROBE"):
-                return None
+        x, y, z = self.r.current_tcp_pose()[:3]
+        for index, (dx, rx, ry, rz) in enumerate(c.SCOOP_CURL_SEQUENCE, start=1):
+            step = f"SCOOP_CURL_{index}"
+            self.r.movel([x + dx, y, z, rx, ry, rz], step, c.VEL_X_SCOOP_CURL, c.ACC_X_SCOOP_CURL)
+            self.r.wait(c.SCOOP_STEP_SETTLE_WAIT)
+            self._checked_force(step)
 
-            if delta >= c.F_ENTRY_DELTA:
-                hit += 1
-            else:
-                hit = 0
-            if hit >= c.ENTRY_CONSEC_HIT_NEEDED:
-                self.r.log(f"진입 감지: z={z:.2f} delta={delta:.2f}")
-                return z
+    def _approach_wall(self):
+        pose = self.r.current_tcp_pose()
+        start_x = pose[0]
+        baseline_fx = self._checked_force("WALL_BASELINE")[0]
+        travel = 0.0
+        while travel < c.WALL_APPROACH_MAX:
+            travel = min(travel + c.WALL_APPROACH_STEP, c.WALL_APPROACH_MAX)
+            pose[0] = start_x + travel
+            self.r.movel(pose, "WALL_APPROACH", c.VEL_X_ICE_ENTRY_FAST, c.ACC_X_ICE_ENTRY_FAST)
+            self.r.wait(c.SCOOP_STEP_SETTLE_WAIT)
+            fx = self._checked_force("WALL_APPROACH")[0]
+            # 베이스 +X로 접근할 때 벽이 스쿱에 가하는 반력은 -X 방향이다.
+            resistance = baseline_fx - fx
+            self.r.log(f"WALL_APPROACH 이동={travel:.1f}mm 반력 증가={resistance:.2f}N")
+            if resistance >= c.F_WALL_RESISTANCE_DELTA:
+                self.r.log("WALL_APPROACH 반력 한계 도달, 후퇴")
+                break
 
-        if hit >= 1:
-            self.r.wait(c.ENTRY_Z_SETTLE_WAIT)
-            f = self.r.tool_force()
-            dx, dz = f[0] - baseline_fx, f[2] - baseline_fz
-            delta = math.sqrt(dx * dx + dz * dz)
-            self.r.log(f"ENTRY_PROBE 경계 재확인 z={z:.2f} delta={delta:.2f}")
-            if delta >= c.F_ENTRY_DELTA:
-                self.r.log(f"진입 감지(경계 재확인): z={z:.2f} delta={delta:.2f}")
-                return z
-
-        self.r.log("!! 진입 힘 감지 실패 - 최대 깊이(P_SCOOP_M1)까지 델타 미도달")
-        return None
+    def _lift_to(self, target_z):
+        pose = self.r.current_tcp_pose()
+        while pose[2] < target_z:
+            pose[2] = min(pose[2] + c.SCOOP_LIFT_STEP, target_z)
+            self.r.movel(pose, "SCOOP_LIFT", c.VEL_X_SCOOP_LIFT_FAST, c.ACC_X_SCOOP_LIFT_FAST)
+            self._checked_force("SCOOP_LIFT")
 
     def scoop(self, lane_dy):
         self.r.movel(c.with_lane_dy(c.P_SCOOP_PRE_ENTRY, lane_dy), "P_SCOOP_PRE_ENTRY",
                      c.VEL_X_ICE_APPROACH_FAST, c.ACC_X_ICE_APPROACH_FAST)
         self.r.wait(0.5)
 
-        found_z = self._probe_ice_entry_z(lane_dy)
-        if found_z is None:
-            raise RuntimeError("진입 힘 감지 실패로 스쿠핑을 중단했습니다.")
+        baseline = self._entry_baseline()
+        if not self._probe_surface(baseline):
+            self._lift_to(c.P_EN_APP[2])
+            raise RuntimeError("Z 하한까지 재료 접촉을 확인하지 못해 스쿠핑을 중단했습니다.")
 
-        self.r.movel(c.with_lane_dy(c.P_SCOOP_M2, lane_dy), "P_SCOOP_M2",
-                     c.VEL_X_SCOOPING_FAST, c.ACC_X_SCOOPING_FAST, radius=c.SCOOP_BLEND_RADIUS)
-        self.r.wait(0.05)
-        if self._check_emergency_force("SCOOP_M2"):
-            raise RuntimeError("비상정지: 힘 한계(40N) 초과 (SCOOP_M2)")
+        self._enter_extra_depth(baseline)
+        self._curl()
+        self._approach_wall()
 
-        self.r.movel(c.with_lane_dy(c.P_SCOOP_M3, lane_dy), "P_SCOOP_M3",
-                     c.VEL_X_SCOOPING_FAST, c.ACC_X_SCOOPING_FAST, radius=c.SCOOP_BLEND_RADIUS)
-        self.r.wait(0.05)
-        if self._check_emergency_force("SCOOP_M3"):
-            raise RuntimeError("비상정지: 힘 한계(40N) 초과 (SCOOP_M3)")
-
-        self.r.movel(c.with_lane_dy(c.P_SCOOP_M4, lane_dy), "P_SCOOP_M4",
-                     c.VEL_X_SCOOPING_FAST, c.ACC_X_SCOOPING_FAST)
-        self.r.wait(0.2)
-        if self._check_emergency_force("SCOOP_M4"):
-            raise RuntimeError("비상정지: 힘 한계(40N) 초과 (SCOOP_M4)")
-
-        self.r.movel(c.with_lane_dy(c.P_SCOOP_M5, lane_dy), "P_SCOOP_M5",
-                     c.VEL_X_SCOOP_LIFT_FAST, c.ACC_X_SCOOP_LIFT_FAST)
-        self.r.wait(0.25)
-        if self._check_emergency_force("SCOOP_M5"):
-            raise RuntimeError("비상정지: 힘 한계(40N) 초과 (SCOOP_M5)")
-
-        self.r.movel(c.with_lane_dy(c.P_SCOOP_M6, lane_dy), "P_SCOOP_M6",
-                     c.VEL_X_SCOOP_EXIT_FAST, c.ACC_X_SCOOP_EXIT_FAST)
+        retreat = self.r.current_tcp_pose()
+        retreat[0] -= c.SCOOP_RETREAT_X
+        self.r.movel(retreat, "SCOOP_RETREAT", c.VEL_X_ICE_ENTRY_FAST, c.ACC_X_ICE_ENTRY_FAST)
+        self._checked_force("SCOOP_RETREAT")
+        self._lift_to(c.P_ICE_TRANSFER_HIGH[2])
         # 통 위에서 내용물이 안정될 때까지 기다린다.
         self.r.wait(1.0)
-        if self._check_emergency_force("SCOOP_M6"):
-            raise RuntimeError("비상정지: 힘 한계(40N) 초과 (SCOOP_M6)")
+        self._checked_force("SCOOP_EXIT")
 
     def put_in_cup(self, lane_dy):
-        """M6에서 컵까지 레인별 안전 경로로 이동한다.
+        """상승을 마친 TCP 위치에서 컵까지 레인별로 이동한다.
 
         큰 자세 전환은 직선 보간 시 회전 방향이 모호하므로 첫 이동에
         관절 보간을 사용한다. 레인 2는 통 벽과 컵을 피해 Y축을 먼저 맞춘다.
         """
-        m6_now = c.with_lane_dy(c.P_SCOOP_M6, lane_dy)
+        x, y = self.r.current_tcp_pose()[:2]
         pour = c.P_POUR
 
         if lane_dy == c.LANE_DY_LIST[0]:
-            z_up = [m6_now[0], m6_now[1], pour[2], pour[3], pour[4], pour[5]]
-            self.r.movejx_scoop(z_up, "PUT_IN_CUP_Z_UP", c.VEL_J_SCOOP_SAFE_FAST, c.ACC_J_SCOOP_SAFE_FAST)
-            self.r.movel(pour, "P_POUR", c.VEL_X_FILLED_SCOOP_CARRY, c.ACC_X_FILLED_SCOOP_CARRY)
+            target = [x, y, *pour[2:]]
+            step = "PUT_IN_CUP_Z_UP"
         else:
-            z_and_y = [m6_now[0], pour[1], pour[2], pour[3], pour[4], pour[5]]
-            self.r.movejx_scoop(z_and_y, "PUT_IN_CUP_Z_AND_Y", c.VEL_J_SCOOP_SAFE_FAST, c.ACC_J_SCOOP_SAFE_FAST)
-            self.r.movel(pour, "P_POUR", c.VEL_X_FILLED_SCOOP_CARRY, c.ACC_X_FILLED_SCOOP_CARRY)
+            target = [x, *pour[1:]]
+            step = "PUT_IN_CUP_Z_AND_Y"
+        self.r.movejx_scoop(target, step, c.VEL_J_SCOOP_SAFE_FAST, c.ACC_J_SCOOP_SAFE_FAST)
+        self.r.movel(pour, "P_POUR", c.VEL_X_FILLED_SCOOP_CARRY, c.ACC_X_FILLED_SCOOP_CARRY)
 
         self.r.wait(0.5)
         self.r.movej([0, 0, 0, 0, 0, -c.POUR_ANGLE], "아이스크림 배출", c.VEL_J_POUR, c.ACC_J_POUR, relative=True)

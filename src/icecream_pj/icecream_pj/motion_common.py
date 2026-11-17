@@ -102,8 +102,20 @@ class RobotController:
     def wait(self, seconds):
         self.dr.wait(seconds)
 
+    def current_tcp_pose(self):
+        result = self.dr.get_current_posx(ref=self.dr.DR_BASE)
+        pose = None
+        if isinstance(result, (list, tuple)) and len(result) == 2:
+            pose = self._six(result[0])
+        if pose is None:
+            raise RuntimeError("현재 TCP 위치를 읽지 못했습니다.")
+        return pose
+
     def tool_force(self):
-        return self.dr.get_tool_force(ref=self.dr.DR_BASE)
+        force = self._six(self.dr.get_tool_force(ref=self.dr.DR_BASE))
+        if force is None:
+            raise RuntimeError("현재 도구 힘을 읽지 못했습니다.")
+        return force
 
     def init_robot(self):
         self.dr.set_ref_coord(self.dr.DR_BASE)
