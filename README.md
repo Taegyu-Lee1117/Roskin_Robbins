@@ -31,14 +31,6 @@ ROS 2와 두산 협동로봇을 활용한 아이스크림 제조 자동화 시�
 
 <img src="docs/flow_chart.png" alt="공정 플로우차트" width="700">
 
-### 제조 공정 상세
-
-<img src="docs/manufacturing_sequence.png" alt="초기화부터 스쿠핑, 배출, 서빙과 홈 복귀까지의 12단계 제조 공정" width="1200">
-
-### 힘 기반 스쿠핑 상세
-
-<img src="docs/force_guided_scoop.png" alt="접촉 탐색, 추가 진입, CURL, 제한된 벽 접근과 후퇴·상승의 상세 제어 흐름" width="1200">
-
 </div>
 
 ## 상세 설명
