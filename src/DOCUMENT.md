@@ -36,7 +36,7 @@ flowchart LR
 | PostgreSQL | `backend/schema.sql` | 맛, 주문, 오류, 로봇 상태, 관리자 명령 저장 |
 | 주문 브리지 | `icecream_pj/.../integrated_order_bridge.py` | HTTP 주문과 ROS Action 변환, 상태/결과 반영 |
 | 제조 서버 | `icecream_pj/.../make_icecream_server.py` | Action 실행, 단계 오케스트레이션, 관리자 Service |
-| 공통 제어 | `motion_common.py` | 이동 API 래핑, I/O, 힘 조회, 오류 변환 |
+| 공통 제어 | `motion_common.py` | 이동 API 래핑, I/O, 현재 TCP와 힘 조회 및 반환값 검사, 오류 변환 |
 | 모션 모듈 | `cup.py`, `scoop.py`, `serve.py` | 컵, 스쿱, 제조, 서빙 동작 분리 |
 | 설정 | `motion_config.py` | TCP, I/O, 좌표, 속도, 힘 임계값 |
 | Doosan 드라이버 | 외부 `doosan-robot2` | ROS 2와 실제 컨트롤러 연결 |
@@ -84,7 +84,7 @@ FastAPI만 DB에 직접 접근하고 UI와 ROS 노드는 SQL 구조를 알지 �
 | 2 | `CUP_PLACE` | `CupMotion.place()` | 작업대에 컵 배치 |
 | 3 | `SCOOP_PICK` | `ScoopMotion.pick()` | 스쿱 파지 |
 | 4 | `MOVE_TO_ICECREAM` | `move_to_icecream()` | 선택 레인의 진입 접근점 도달 |
-| 5 | `SCOOP_ICECREAM` | `scoop()` | 힘 기반 진입과 M2~M6 스쿠핑 |
+| 5 | `SCOOP_ICECREAM` | `scoop()` | 접촉 감지, 추가 진입, 수직화, CURL, 제한된 벽 접근, 후퇴·상승 |
 | 6 | `PUT_ICECREAM_IN_CUP` | `put_in_cup()` | J6 회전으로 컵에 배출 |
 | 7 | `SCOOP_RETURN` | `return_scoop()` | 거치대에 스쿱 반환 |
 | 8 | `SERVE_CUP` | `ServeMotion.serve()` | 고객 제공 위치에 컵 배치 |
@@ -232,24 +232,50 @@ erDiagram
 
 모션 반환값이 `None` 또는 `0`이 아니면 실패로 간주한다. `movej`, `movel`, `movejx` 공통 래퍼가 예외를 상위 제조 단계로 전달한다.
 
-### 9.3 힘 기반 진입 감지
+### 9.3 힘 기반 진입과 스쿠핑
 
-고정 깊이만 사용하면 재료 표면이 낮아질 때 접촉을 놓치거나 바닥을 누를 수 있다. 현재 알고리즘은 접촉 전 힘을 기준값으로 잡고 1mm씩 하강하면서 X/Z 힘 변화량을 계산한다.
+`scoop.py`는 `motion_config.py`의 파라미터와 `RobotController.current_tcp_pose()`로 읽은 현재 TCP 위치를 사용한다. TCP와 도구 힘의 기준 좌표계는 `DR_BASE`다. TCP와 힘 조회 결과는 각각 유한한 값 6개인지 검사하며, 잘못된 반환값은 예외로 전달한다.
+
+진입 탐색 전 정지한 자세에서 힘을 5회 측정하고 Fx/Fz를 각각 평균해 기준값으로 저장한다. 탐색과 추가 진입에는 동일한 기준값과 다음 X/Z 벡터 차이 계산식을 사용한다.
 
 ```text
 delta = sqrt((Fx - baseline_Fx)^2 + (Fz - baseline_Fz)^2)
 ```
 
+스쿠핑은 다음 순서로 실행한다.
+
+1. **파지와 접근** — 스쿱을 파지하고 선택 레인의 접근점을 거쳐 `P_SCOOP_PRE_ENTRY`로 이동한다.
+2. **접촉 감지** — 현재 TCP에서 X/Y와 자세를 유지하며 Z를 1mm씩 내린다. 각 이동 후 0.4초 기다린 다음 `delta >= 1.3N`을 2회 연속 확인하면 접촉으로 판정한다. 기준 미달이면 연속 횟수를 초기화한다. Z 하한에서 접촉 후보가 1회 나오면 같은 높이에서 한 번 더 측정한다.
+3. **추가 진입** — 접촉한 현재 높이에서 2mm씩, 최대 7mm 추가 하강한다. 남은 깊이에 맞춰 마지막 이동량을 줄이며 Z 하한을 적용한다. 각 단계에서 진입 기준값 대비 델타와 축별 절대 힘을 확인한다.
+4. **수직화** — 현재 TCP의 X/Y/Z를 유지하며 자세를 `(0.0, -170.0, 0.0)`으로 전환한다.
+5. **CURL** — 수직화 후 현재 X를 기준으로 세 자세를 순차 실행한다. X 오프셋은 `0.0`, `-9.80`, `-20.0mm`이며 Y/Z는 유지한다. 스쿱 회전과 X축 후퇴를 결합해 재료를 담고 각 자세 도달 후 힘을 확인한다.
+6. **제한된 벽 접근** — CURL 종료점에서 자세와 Y/Z를 유지하며 +X 방향으로 2mm씩, 최대 6mm 이동한다. 종료 자세에서 측정한 `baseline_Fx`를 기준으로 반력 증가량 `baseline_Fx - Fx`를 계산한다. 이 값이 5N에 도달하면 남은 접근을 생략하고 후퇴한다. 힘 기준에 도달하지 않아도 최대 이동거리에서 접근을 마치고 후퇴한다.
+7. **후퇴와 상승** — 접근 종료 시점의 현재 TCP에서 -X 방향으로 5mm 후퇴한 뒤, X/Y와 자세를 유지하며 최대 25mm씩 나눠 Z=320mm까지 상승한다.
+8. **컵 이동과 반환** — 상승을 마친 현재 TCP에서 레인별 컵 이동 경로로 이어지고 배출과 스쿱 반환을 실행한다.
+
 | 파라미터 | 값 | 역할 |
 |---|---:|---|
+| `ENTRY_BASELINE_SAMPLES` | 5회 | Fx/Fz 기준값 평균에 사용하는 샘플 수 |
+| `ENTRY_BASELINE_SAMPLE_GAP` | 0.06s | 기준값 샘플 사이 대기 |
 | `ENTRY_Z_STEP` | 1.0mm | 하강 간격 |
 | `ENTRY_Z_SETTLE_WAIT` | 0.4s | 각 측정 전 안정화 |
+| `ENTRY_MIN_Z` | 115.29mm | 탐색과 추가 진입의 Z 하한 |
 | `F_ENTRY_DELTA` | 1.3N | 접촉 후보 임계값 |
 | `ENTRY_CONSEC_HIT_NEEDED` | 2회 | 노이즈 오검출 방지 |
-| `F_ENTRY_HARD_LIMIT_DELTA` | 15N | 진입 탐색 즉시 중단 기준 |
-| `F_EMERGENCY_LIMIT` | 40N | M2~M6 각 축 절댓값 중단 기준 |
+| `ENTRY_EXTRA_DEPTH` | 7.0mm | 접촉 후 최대 추가 진입 깊이 |
+| `ENTRY_EXTRA_STEP` | 2.0mm | 추가 진입 단계 간격 |
+| `F_ENTRY_HARD_LIMIT_DELTA` | 15N | 탐색, 하한 재확인과 추가 진입의 델타 중단 기준 |
+| `F_EMERGENCY_LIMIT` | 40N | 각 힘 측정에서 Fx/Fy/Fz 중 한 축의 절댓값 중단 기준 |
+| `WALL_APPROACH_STEP` | 2.0mm | 벽 방향 접근 간격 |
+| `WALL_APPROACH_MAX` | 6.0mm | CURL 종료점에서 벽 방향 최대 이동거리 |
+| `F_WALL_RESISTANCE_DELTA` | 5N | 벽 접근 구간의 방향성 반력 증가 기준 |
+| `SCOOP_RETREAT_X` | 5.0mm | 벽 접근 후 -X 방향 후퇴량 |
+| `SCOOP_LIFT_STEP` | 25.0mm | 수직 상승의 최대 단계 간격 |
+| `SCOOP_STEP_SETTLE_WAIT` | 0.2s | 수직화, CURL과 벽 접근 후 힘 측정 전 대기 |
 
-자세에 따라 무접촉 Fz가 편향될 수 있으므로 절댓값 대신 baseline 대비 변화량을 사용한다. 능동 목표힘과 순응제어는 예상보다 깊게 파고드는 거동 때문에 제외하고 위치제어 기반 델타 감지를 채택했다.
+접촉 판정과 진입 하드리밋에는 Fx/Fz 기준값 대비 벡터 변화량을 적용한다. 벽 접근에는 해당 자세에서의 Fx 반력 증가량을 적용하고, 축별 절대 힘 제한은 기준값과 독립적으로 확인한다. 힘 감시는 각 이동을 마친 후 수행하며, 수직 상승에서는 각 단계 이동 직후 힘을 읽는다. 15N 진입 델타 또는 40N 축별 절대 힘 한계에 도달하면 예외를 전달해 남은 제조 동작을 중단한다.
+
+Z 하한까지 접촉을 확인하지 못하면 현재 X/Y와 자세를 유지한 채 Z=250mm까지 나눠 상승하고 스쿠핑 실패를 전달한다. 이 상승 중에도 각 단계에서 축별 절대 힘을 확인한다.
 
 ### 9.4 레인 순회
 
@@ -257,7 +283,9 @@ delta = sqrt((Fx - baseline_Fx)^2 + (Fz - baseline_Fz)^2)
 
 ### 9.5 컵 투입과 복귀
 
-M6와 컵 투입 자세의 큰 차이를 한 번의 직선 보간으로 처리하지 않고 첫 구간에 `movejx`를 사용한다. 레인 2는 통 벽과 컵에 가까워 Y축을 먼저 맞춘다. 배출은 J6을 -120° 회전하고 2초 기다린 뒤 Z축으로 50mm 이탈하고 J6을 복귀한다. 스쿱 반환 전에는 종이컵 적재 위치를 피하도록 100mm 상승한다.
+스쿠핑 후 Z=320mm까지 상승한 현재 TCP에서 컵 이동 경로를 만든다. 레인 1은 현재 X/Y를 유지한 경유점에서 컵 투입 높이와 자세를 맞춘다. 레인 2는 현재 X를 유지하며 컵 투입 목표의 Y/Z와 자세를 맞춘다. 두 레인 모두 첫 경유점까지 `movejx_scoop()`으로 관절 보간한 뒤 `P_POUR`까지 `movel()`로 이동한다.
+
+배출은 J6을 -120° 회전하고 2초 기다린 뒤 Z축으로 50mm 이탈하고 J6을 복귀한다. 스쿱 반환 전에는 종이컵 적재 위치를 피하도록 100mm 상승한다.
 
 ## 10. 오류 처리와 안전
 
