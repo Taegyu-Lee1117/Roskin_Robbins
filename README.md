@@ -1,165 +1,153 @@
 # Roskin Robbins
 
-**ROS 2와 Doosan M0609를 이용한 아이스크림 제조 자동화 시스템**
+ROS 2와 두산 협동로봇을 활용한 아이스크림 제조 자동화 시스템
 
-웹 키오스크의 주문을 FastAPI와 PostgreSQL로 관리하고, ROS 2 Action으로 컵 공급부터 아이스크림 스쿠핑, 배출, 완성 컵 제공과 홈 복귀까지 연결한 프로젝트입니다. 주문 진행 상황과 로봇 상태는 브리지를 거쳐 웹 화면에 반영합니다.
+## 프로젝트 개요
+
+- **목표**: 웹 주문부터 아이스크림 제조와 완성품 제공까지 이어지는 협동로봇 기반 무인 자동화 시스템 구현
+- **주요 기능**: 키오스크 주문, 제조 공정 제어, 실시간 상태 표시, 관리자 모니터링 및 수동 제어
+- **사용 장비**: Doosan M0609, 컵 그리퍼, 스쿱 그리퍼, 디지털 입출력 센서
+- **개발 환경**: Ubuntu 24.04.4 LTS, ROS 2 Jazzy, Python 3.12, PostgreSQL 16
+- **주요 기술 스택**: ROS 2, Doosan Robotics API, FastAPI, PostgreSQL, HTML/CSS/JavaScript
 
 ## 시연 영상
 
+<div align="center">
+
 [![Roskin Robbins 시연 영상](https://img.youtube.com/vi/kTLdnDv2gPA/hqdefault.jpg)](https://www.youtube.com/watch?v=kTLdnDv2gPA)
+
+
+</div>
 
 ## 담당 역할
 
-스쿠핑 동작과 힘 감지 로직을 담당했습니다. 기존 제조 공정에 표면 접촉 감지, 단계별 추가 진입, CURL 스쿠핑과 후퇴·상승을 통합하고, 동작 종료 시점의 현재 TCP에서 컵 이동 경로로 이어지도록 구성했습니다.
+스쿠핑 공정과 힘 감지 로직을 담당했습니다. 재료 표면을 탐색한 뒤 추가 진입, 수직화, CURL 스쿠핑과 후퇴·상승을 실행하고, 현재 TCP 위치에서 기존 컵 이동 경로로 이어지도록 구성했습니다.
 
-- Fx/Fz baseline 대비 변화량으로 접촉을 판정하고, 1mm 하강과 연속 2회 감지 조건을 적용했습니다.
-- 접촉 후 최대 7mm 추가 진입에 단계별 힘 검사와 Z 하한을 적용했습니다.
-- 현재 TCP 위치에서 수직화한 뒤 스쿱 회전과 X축 후퇴를 결합하는 CURL 동작을 연결했습니다.
-- 제한된 벽 접근 경로에 방향성 반력 감시를 적용하고, 접근 종료 후 후퇴와 수직 상승을 연결했습니다.
-- 진입 델타 15N과 축별 절대 힘 40N의 의미를 유지하고, TCP·힘 조회 반환값을 검사하도록 구성했습니다.
+- **표면 접촉 감지** — Fx/Fz를 5회 측정한 평균을 baseline으로 잡고, Z축을 1mm씩 내리며 baseline 대비 벡터 변화량이 1.3N 이상인 상태를 2회 연속 확인합니다.
+- **추가 진입과 힘 제한** — 접촉 후 2mm씩 최대 7mm 추가 진입하며 Z 하한과 진입 델타 15N을 적용합니다. 각 힘 측정에서 Fx/Fy/Fz 축별 절대 힘 40N 제한을 확인합니다.
+- **CURL 스쿠핑** — 현재 TCP에서 스쿱을 수직화한 뒤, Y/Z를 유지하며 스쿱 회전과 X축 후퇴를 결합해 재료를 퍼담습니다.
+- **벽 접근과 공정 연결** — 최대 6mm의 벽 방향 접근에서 반력 증가를 감시하고, 접근을 마친 뒤 후퇴·상승해 컵 투입 경로로 연결합니다. 힘은 각 이동 단계가 끝난 뒤 확인합니다.
 
-담당 기능의 구현은 스쿠핑 모듈, 공통 로봇 제어 래퍼와 모션 설정에서 확인할 수 있습니다. [스쿠핑 모듈](src/icecream_pj/icecream_pj/scoop.py), [공통 모션](src/icecream_pj/icecream_pj/motion_common.py), [모션 설정](src/icecream_pj/icecream_pj/motion_config.py)
+관련 구현은 스쿠핑 모듈, 공통 모션과 모션 설정에서 확인할 수 있습니다. [scoop.py](src/icecream_pj/icecream_pj/scoop.py), [motion_common.py](src/icecream_pj/icecream_pj/motion_common.py), [motion_config.py](src/icecream_pj/icecream_pj/motion_config.py)
+
+## 다이어그램
+
+<div align="center">
+
+### 시스템 아키텍처
+
+<img src="src/system_architecture.png" alt="시스템 아키텍처" width="700">
+
+### 공정 플로우차트
+
+<img src="docs/flow_chart.png" alt="공정 플로우차트" width="700">
+
+</div>
+
+## 상세 설명
+
+### 문제 정의
+
+- 일반적인 협동로봇 예제는 개별 모션 실행에 집중되어 있어 주문 접수, 제조, 상태 관리까지 연결된 서비스형 자동화 사례가 부족합니다.
+- 키오스크, 백엔드, 데이터베이스, ROS 2 노드가 분리되어 있으면 주문과 로봇 상태를 일관되게 관리하기 어렵습니다.
+- 컵과 스쿱을 다루는 실제 제조 공정에서는 파지 확인, 힘 제어, 일시정지, 오류 처리 등 실기 환경을 고려한 제어가 필요합니다.
+
+### 해결 방안
+
+- 웹 키오스크와 FastAPI를 이용해 사용자 주문을 접수하고 PostgreSQL에 공정 상태를 기록합니다.
+- 주문 브리지가 백엔드의 대기 주문을 ROS 2 Action Goal로 변환해 제조 서버에 전달합니다.
+- 제조 서버는 컵 공급, 스쿱 파지, 아이스크림 스쿠핑, 컵 투입, 스쿱 반환, 완성품 제공 단계를 순차 실행합니다.
+- ROS 2 Action Feedback을 통해 진행 상황을 백엔드와 UI에 반영합니다.
+- 관리자 화면과 Service를 이용해 일시정지, 재개, 정지, 홈 이동 및 개별 공정 명령을 처리합니다.
+
+### 주요 기능
+
+- **키오스크 주문**: 맛 선택, 주문 접수, 제조 진행 상태와 결과 표시
+- **관리자 제어**: 로봇 상태 확인, 공정 시작/정지, 수동 명령 전송
+- **제조 자동화**: 컵 공급부터 완성품 제공까지 단계별 모션 실행
+- **ROS 2 연동**: Action 기반 제조 요청과 Feedback, Service 기반 관리자 명령
+- **데이터 관리**: 주문 이력, 오류, 로봇 상태, 관리자 명령을 PostgreSQL에 저장
+- **안전 제어**: Pause/Resume/Stop, 디지털 입력 기반 파지 확인, 힘 제어 활용
+- **모듈화**: 컵, 스쿱, 서빙, 공통 모션을 독립 모듈로 분리해 유지보수성 확보
+- **확장성**: 새로운 맛, 공정 단계, 관리자 명령, UI 기능을 추가할 수 있는 구조
 
 ## 시스템 구성
 
-<img src="src/system_architecture.png" alt="키오스크, FastAPI, PostgreSQL, 주문 브리지, ROS 2 제조 서버와 M0609의 연결 구조" width="1000">
-
 | 구성 요소 | 역할 |
 | --- | --- |
-| 키오스크·관리자 UI | 맛 선택과 주문 접수, 제조 진행 표시, 관리자 수동 명령 |
-| FastAPI · PostgreSQL | 주문·오류·로봇 상태 저장, REST API와 WebSocket 피드백 제공 |
-| 주문 브리지 | HTTP 주문을 ROS 2 Action으로 전달하고 진행 상황과 결과를 API에 반영 |
-| 제조 Action Server | 컵·스쿱·서빙 모션의 순차 실행과 단계별 오류 전달 |
-| Doosan ROS 2 Driver | M0609의 관절·직선 이동과 디지털 I/O, 도구 힘 조회 |
+| 키오스크/관리자 UI | 주문 접수, 공정 상태 표시, 관리자 제어 |
+| FastAPI | REST API와 웹 페이지 제공, 상태 전이 및 요청 검증 |
+| PostgreSQL | 주문, 오류, 로봇 상태, 관리자 명령 저장 |
+| `order_bridge` | HTTP 주문과 ROS 2 Action/Service 변환 |
+| `make_icecream_server` | 제조 공정 오케스트레이션 및 Action Server |
+| Doosan ROS 2 Driver | M0609 모션, 디지털 I/O, 힘 제어 |
 
-주문 브리지는 대기 주문을 선점한 뒤 `/make_icecream` Goal을 전송합니다. 제조 서버는 단계별 Feedback을 발행하고, 브리지는 이를 주문 진행률과 로봇 상태로 변환해 API와 UI에 전달합니다.
+## 공정 흐름
 
-<details>
-<summary>주문 접수부터 완료까지의 전체 플로우차트</summary>
+1. 사용자가 키오스크에서 맛을 선택하고 주문합니다.
+2. FastAPI가 주문을 PostgreSQL에 저장합니다.
+3. `order_bridge`가 가장 오래된 대기 주문을 선점합니다.
+4. `/make_icecream` Action Goal을 제조 서버에 전송합니다.
+5. 제조 서버가 컵 공급, 스쿱 파지, 스쿠핑, 컵 투입, 스쿱 반환, 컵 제공을 실행합니다.
+6. 단계별 Feedback과 성공/실패 결과가 백엔드에 반영됩니다.
+7. 키오스크와 관리자 화면이 최신 주문 및 로봇 상태를 표시합니다.
 
-<img src="docs/flow_chart.png" alt="키오스크 주문 접수, 제조 요청, 컵 제공과 오류 처리의 전체 흐름" width="700">
+### 로봇 제조 공정
 
-</details>
+<img src="docs/manufacturing_sequence.png" alt="초기화부터 컵 파지, 힘 기반 스쿠핑, 배출, 서빙과 홈 복귀까지의 제조 공정" width="1200">
 
-## 제조 공정
+그림은 주문 1건의 정상 제조 흐름을 12개 동작으로 묶어 표현한 것입니다.
 
-<img src="docs/manufacturing_sequence.png" alt="초기화부터 컵 파지, 힘 기반 스쿠핑, 배출, 서빙과 홈 복귀까지의 제조 타임라인" width="1200">
-
-그림은 정상 제조 흐름을 12개 동작 묶음으로 표현합니다. 제품 제공 완료 시 주문 완료를 알리고, 홈 복귀가 성공하면 로봇을 다음 주문을 받을 수 있는 상태로 전환합니다.
-
-## 스쿠핑 제어 설계
-
-<img src="docs/force_guided_scoop.png" alt="접촉 탐색, 추가 진입, 수직화와 CURL, 벽 접근, 후퇴와 상승의 상태 전이 및 힘 판정 기준" width="1200">
-
-### 기준값 대비 변화량으로 표면 접촉 판정
-
-진입 자세에서 측정되는 힘의 편향을 기준값에 반영하기 위해 Fx/Fz를 0.06초 간격으로 5회 측정하고 각 성분을 평균합니다. 현재 TCP에서 Z축을 1mm씩 내리며 다음 변화량을 계산합니다.
-
-```text
-Δ = sqrt((Fx - baseline_Fx)² + (Fz - baseline_Fz)²)
-```
-
-Δ가 1.3N 이상인 상태를 2회 연속 확인하면 접촉으로 판정합니다. 기준 미달 시 연속 횟수를 초기화하며, Z 하한에서 접촉 후보가 한 번 나오면 같은 높이에서 한 번 더 측정합니다.
-
-### 현재 TCP를 기준으로 퍼담기와 이송 연결
-
-| 구간 | 제어 방식 |
-| --- | --- |
-| 추가 진입 | 접촉 높이에서 2mm씩 최대 7mm 하강하며 Z=115.29mm 하한 적용 |
-| 수직화 | 현재 X/Y/Z를 유지한 채 스쿱 자세 전환 |
-| CURL | Y/Z를 유지하며 자세 회전과 X축 최대 20mm 후퇴 결합 |
-| 벽 접근 | CURL 종료점에서 +X로 2mm씩 최대 6mm 접근하며 Fx 반력 증가 감시 |
-| 후퇴·상승 | 현재 TCP에서 -X로 5mm 후퇴 후 최대 25mm씩 Z=320mm까지 상승 |
-| 컵 이동 | 상승을 마친 현재 TCP에서 레인별 경유점을 구성해 컵 투입 목표로 이동 |
-
-벽 접근의 반력 증가량은 CURL 종료 자세에서 읽은 Fx를 기준으로 `baseline_Fx - Fx`로 계산합니다. 반력 증가가 5N에 도달하거나 최대 이동거리를 채우면 접근을 마치고 후퇴합니다.
-
-### 힘 기준과 중단 조건
-
-| 기준 | 계산에 사용하는 값 | 적용 구간 |
+| 단계 | 구간 | 동작 |
 | --- | --- | --- |
-| 1.3N 연속 2회 | Fx/Fz baseline 대비 벡터 변화량 Δ | 표면 접촉 판정 |
-| 15N | 동일한 진입 baseline 대비 Δ | 탐색·하한 재확인·추가 진입 중단 |
-| 40N | Fx/Fy/Fz 중 각 축의 절댓값 | 각 힘 측정에서 한계 도달 여부 확인 |
-| 5N | 벽 접근 시작 Fx 대비 방향성 반력 증가량 | 제한된 벽 접근 종료 |
+| 1~3 | 준비 | 로봇 초기화와 홈 이동, 컵 파지·뒤집기, 작업대에 컵 배치 |
+| 4~5 | 스쿱 접근 | 스쿱을 파지하고 안전 경유점을 거쳐 선택 레인의 재료 위로 접근 |
+| 6 | 힘 기반 스쿠핑 | 접촉 감지, 추가 진입, 수직화·CURL, 제한된 벽 접근과 후퇴·상승 |
+| 7~9 | 컵 투입 | 현재 TCP에서 컵 위로 이동하고 J6 회전으로 배출한 뒤 수직 이탈과 자세 복귀 |
+| 10~12 | 제공·복귀 | 스쿱 반환, 완성 컵 제공, 홈 복귀와 다음 주문 대기 |
 
-힘은 각 이동 단계가 끝난 뒤 확인합니다. 힘 한계 도달이나 잘못된 센서 반환값은 예외로 전달해 후속 제조 동작을 중단합니다. 접촉을 확인하지 못한 경우에는 현재 X/Y와 자세를 유지한 채 Z=250mm까지 상승하고 스쿠핑 실패를 전달합니다.
+제품 제공 완료 시 주문 완료를 알리고, 홈 복귀가 성공하면 로봇을 다음 주문을 받을 수 있는 상태로 전환합니다.
 
-자세, 속도와 힘 임계값은 설정 파일에 모아 관리합니다. [모션 설정](src/icecream_pj/icecream_pj/motion_config.py), [스쿠핑 상세 기술문서](src/DOCUMENT.md#93-힘-기반-진입과-스쿠핑)
+## ROS 2 인터페이스
 
-## 공정 통합에서의 설계
+| 종류 | 이름 | 역할 |
+| --- | --- | --- |
+| Action | `/make_icecream` | 아이스크림 제조 요청, 진행 Feedback, 결과 반환 |
+| Service | `/dsr01/admin_command` | 관리자 수동 명령 처리 |
+| Service | `/dsr01/dsr_controller2/motion/move_pause` | 로봇 일시정지 |
+| Service | `/dsr01/dsr_controller2/motion/move_resume` | 로봇 동작 재개 |
+| Service | `/dsr01/dsr_controller2/motion/move_stop` | 로봇 정지 |
 
-| 다룬 상황 | 구현 방식 |
-| --- | --- |
-| 주문 조회 후 같은 주문을 다시 수령하는 경우 | `PENDING` 상태를 조건으로 `PROCESSING`으로 변경하는 주문 선점 API 사용 |
-| 제조 진행 상황을 웹에서 확인해야 하는 경우 | Action Feedback의 단계명을 브리지에서 진행률·메시지로 변환하고 WebSocket으로 전달 |
-| 제품 제공 후 홈 복귀가 실패하는 경우 | 결과의 `order_completed`와 `robot_ready`를 각각 관리해 주문 완료와 로봇 준비 상태 구분 |
-| 제조 명령과 관리자 수동 명령이 겹치는 경우 | 제조 서버의 `busy_lock`으로 실행 진입을 관리하고 제조 중 일반 수동 명령 거부 |
-| 동기 로봇 API를 호출하며 Action을 처리하는 경우 | Action 처리 노드와 DSR API 노드를 분리해 제조 서버 구성 |
+## 주요 로봇 설정
 
-관련 구현은 주문 선점 API, 주문 브리지와 제조 서버에서 확인할 수 있습니다. [FastAPI](backend/app/main.py), [주문 브리지](src/icecream_pj/icecream_pj/integrated_order_bridge.py), [제조 서버](src/icecream_pj/icecream_pj/make_icecream_server.py)
+- Robot ID: `dsr01`
+- Robot Model: `m0609`
+- Robot Address: `192.168.1.100:12345`
+- TCP: `GripperDA_v1_A3`
+- 스쿱 그리퍼: DO 1 / DI 1
+- 컵 그리퍼: DO 3 / DI 3
+- 그리퍼 열기: DO 2
+- ROS Domain ID: `30`
 
-## 개발 환경과 기술 스택
+> 실제 로봇 실행 전 TCP/Tool 설정, 작업 좌표, 비상정지 장치 및 주변 안전 상태를 반드시 확인해야 합니다.
 
-| 분야 | 사용 기술 |
-| --- | --- |
-| 로봇·장비 | Doosan M0609, 컵·스쿱 그리퍼, 디지털 I/O 센서 |
-| 운영체제·언어 | Ubuntu 24.04.4 LTS, Python 3.12 |
-| 로봇 소프트웨어 | ROS 2 Jazzy, Doosan Robotics API, Action, Service |
-| 백엔드·데이터 | FastAPI, PostgreSQL 16, psycopg |
-| 웹 UI | HTML, CSS, JavaScript, WebSocket |
+## 실행 방법
 
-## 코드 구조
-
-```text
-Roskin_Robbins/
-├── backend/                         # FastAPI, PostgreSQL 스키마·마이그레이션
-├── docs/                            # 공정도와 스쿠핑 상세도 PNG·SVG
-├── src/
-│   ├── icecream_pj/
-│   │   ├── icecream_pj/
-│   │   │   ├── scoop.py              # 스쿠핑과 컵 투입·스쿱 반환
-│   │   │   ├── motion_common.py      # 공통 이동·I/O·TCP·힘 조회
-│   │   │   ├── motion_config.py      # 좌표·속도·힘 임계값
-│   │   │   ├── make_icecream_server.py
-│   │   │   ├── integrated_order_bridge.py
-│   │   │   ├── cup.py
-│   │   │   └── serve.py
-│   │   └── launch/                  # 로봇·제조 서버·브리지 통합 실행
-│   ├── icecream_interfaces/         # MakeIcecream Action, AdminCommand Service
-│   ├── frontend/                    # 키오스크·관리자 화면
-│   ├── backend/                     # 제출용 백엔드
-│   ├── README.md                    # 설치·빌드·실행 안내
-│   └── DOCUMENT.md                  # 시스템 상세 기술문서
-├── history/                         # 이전 프로젝트 버전
-└── run_system.sh                    # 통합 실행 스크립트
-```
-
-## 실행 및 상세 문서
-
-DB 초기화, 의존성 설치와 ROS 2 패키지 빌드 순서는 실행 문서에 정리되어 있습니다. [설치·빌드·실행 안내](src/README.md), [백엔드 설정](backend/README.md)
-
-<details>
-<summary>기본 실행 명령과 웹 주소</summary>
-
-아래 `<workspace>`는 이 저장소를 클론하고 빌드한 ROS 2 워크스페이스, `<doosan_ws>`는 Doosan ROS 2 패키지를 빌드한 워크스페이스입니다.
-
-PostgreSQL과 FastAPI를 실행합니다.
+### Terminal 1: PostgreSQL 및 FastAPI
 
 ```bash
 sudo systemctl start postgresql
 
-cd <workspace>/backend
+cd backend
 source .venv/bin/activate
 export DATABASE_URL=postgresql://icecream:icecream@127.0.0.1:5432/icecream_db
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-별도 터미널에서 로봇과 ROS 2 노드를 실행합니다.
+### Terminal 2: ROS 2 및 실제 로봇
 
 ```bash
-cd <workspace>
 export ROS_DOMAIN_ID=30
 source /opt/ros/jazzy/setup.bash
 source <doosan_ws>/install/setup.bash
@@ -168,25 +156,43 @@ source install/setup.bash
 ros2 launch icecream_pj icecream_system.launch.py
 ```
 
-| 화면 | 주소 |
-| --- | --- |
-| 키오스크 | http://127.0.0.1:8000/kiosk |
-| 관리자 | http://127.0.0.1:8000/admin |
-| 데이터베이스 조회 | http://127.0.0.1:8000/database |
-| API 문서 | http://127.0.0.1:8000/docs |
+### 웹 페이지
 
-실제 로봇 실행 전 TCP/Tool 설정, 작업 좌표, 비상정지 장치와 주변 작업 상태를 확인해야 합니다.
+- 키오스크: <http://127.0.0.1:8000/kiosk>
+- 관리자 화면: <http://127.0.0.1:8000/admin>
+- 데이터베이스 조회: <http://127.0.0.1:8000/database>
+- API 문서: <http://127.0.0.1:8000/docs>
 
-</details>
+## 프로젝트 구조
 
+```text
+icecream_pj/
+├── backend/                    # FastAPI 및 PostgreSQL
+├── docs/                       # README 이미지
+├── history/                    # 이전 프로젝트 버전
+├── src/
+│   ├── README.md               # 제출 및 실행 안내
+│   ├── DOCUMENT.md             # 시스템 상세 기술문서
+│   ├── backend/                # 제출용 백엔드
+│   ├── frontend/               # 키오스크 및 관리자 UI
+│   ├── icecream_interfaces/    # ROS 2 Action 및 Service
+│   └── icecream_pj/            # ROS 2 Python 패키지
+├── ui_preview/                 # 웹 UI 미리보기
+├── 협동1.mp4                   # 제조 시연 영상
+└── run_system.sh               # 통합 실행 스크립트
+```
+
+## 상세 문서
+
+- [제출 및 실행 안내](src/README.md)
 - [시스템 상세 기술문서](src/DOCUMENT.md)
+- [백엔드 안내](backend/README.md)
 - [이전 버전 기록](history/README.md)
 
 ## 참고 자료
 
 - [Doosan Robotics ROS 2](https://github.com/DoosanRobotics/doosan-robot2)
 - [Doosan Robotics Programming Manual](https://manual.doosanrobotics.com/ko/programming-manual/3.3.0/publish/)
-- [스쿠핑 실험 코드와 CURL 기준 모션](https://github.com/tnduaehowl12/scooping-motion-drl)
 
 ## 라이선스
 
