@@ -44,6 +44,8 @@
 
 힘 계산식, 임계값과 이동 한계는 [기술문서의 스쿠핑 제어 설명](DOCUMENT.md#93-힘-기반-진입과-스쿠핑)을 참고합니다.
 
+![초기화부터 스쿠핑, 배출과 홈 복귀까지의 제조 타임라인](../docs/manufacturing_sequence.png)
+
 ### 시스템 아키텍처
 
 ![시스템 아키텍처](system_architecture.png)

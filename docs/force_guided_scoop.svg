@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1780" viewBox="0 0 2600 1780" role="img" aria-labelledby="title desc">
+<title id="title">힘 기반 스쿠핑 상태 전이</title><desc id="desc">접촉 탐색, 추가 진입, 수직화와 CURL, 벽 접근, 후퇴와 상승의 상태 전이와 진입 판정 및 힘 제한을 설명한다.</desc>
+<rect width="2600" height="1780" fill="#FFFFFF"/>
+<text x="105" y="60.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="650" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">SCOOP CONTROL  /  DR_BASE</text>
+<text x="105" y="122.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="72" font-weight="800" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">접촉에서 안전 이탈까지</text>
+<text x="108" y="225.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="30" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">현재 TCP를 기준으로 다음 동작을 만들고, 각 이동 단계 완료 후 힘을 확인</text>
+<polyline points="348,470 652,470" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="652,470 634.0,462.0 634.0,478.0" fill="#146A5D"/>
+<polyline points="818,470 1182,470" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="1182,470 1164.0,462.0 1164.0,478.0" fill="#146A5D"/>
+<polyline points="1348,470 1712,470" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="1712,470 1694.0,462.0 1694.0,478.0" fill="#146A5D"/>
+<polyline points="1878,470 2222,470" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="2222,470 2204.0,462.0 2204.0,478.0" fill="#146A5D"/>
+<circle cx="270" cy="470" r="70" fill="#FFFFFF" stroke="#A33E23" stroke-width="3"/>
+<text x="270" y="442.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="48" font-weight="750" text-anchor="middle" dominant-baseline="text-before-edge" fill="#A33E23">01</text>
+<circle cx="740" cy="470" r="70" fill="#FFFFFF" stroke="#146A5D" stroke-width="3"/>
+<text x="740" y="442.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="48" font-weight="750" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">02</text>
+<circle cx="1270" cy="470" r="70" fill="#FFFFFF" stroke="#146A5D" stroke-width="3"/>
+<text x="1270" y="442.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="48" font-weight="750" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">03</text>
+<circle cx="1800" cy="470" r="70" fill="#FFFFFF" stroke="#146A5D" stroke-width="3"/>
+<text x="1800" y="442.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="48" font-weight="750" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">04</text>
+<circle cx="2310" cy="470" r="70" fill="#FFFFFF" stroke="#146A5D" stroke-width="3"/>
+<text x="2310" y="442.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="48" font-weight="750" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">05</text>
+<path d="M225 415 C125 300 415 300 315 415" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polyline points="323.72888888888883,403.8833333333333 319.67861111111114,409.34583333333336 315.0,415.0" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="315.0,415.0 332.63872989373556,406.23214919516533 320.3116720118012,396.0319705704824" fill="#146A5D"/>
+<text x="270" y="302.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">접촉 전 탐색 반복</text>
+<path d="M1755 415 C1655 300 1945 300 1845 415" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polyline points="1853.7288888888888,403.8833333333333 1849.6786111111114,409.34583333333336 1845.0,415.0" fill="none" stroke="#146A5D" stroke-width="3"/>
+<polygon points="1845.0,415.0 1862.638729893736,406.2321491951659 1850.3116720118016,396.0319705704825" fill="#146A5D"/>
+<text x="1800" y="302.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">한계 이내 접근 반복</text>
+<text x="505" y="423.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">접촉 확정</text>
+<text x="1005" y="423.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">진입 종료</text>
+<text x="1535" y="423.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">CURL 완료</text>
+<text x="2050" y="423.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">힘 또는 거리 도달</text>
+<text x="270" y="583.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">접촉 탐색</text>
+<text x="270" y="653.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">Z축 1mm씩 하강</text>
+<text x="270" y="695.56" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">Δ ≥ 1.3N 연속 2회</text>
+<text x="270" y="738.12" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">접촉 시 다음 상태로</text>
+<text x="740" y="583.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">추가 진입</text>
+<text x="740" y="653.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">2mm 단위 추가 하강</text>
+<text x="740" y="695.56" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">접촉 후 최대 7mm</text>
+<text x="740" y="738.12" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">Z 하한까지 깊이 제한</text>
+<text x="1270" y="583.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">수직화 · CURL</text>
+<text x="1270" y="653.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">현재 XYZ 고정 수직화</text>
+<text x="1270" y="695.56" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">X 0 → -9.80 → -20mm</text>
+<text x="1270" y="738.12" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">CURL 중 Y/Z 유지</text>
+<text x="1800" y="583.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">벽 방향 접근</text>
+<text x="1800" y="653.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">+X 2mm씩 · 최대 6mm</text>
+<text x="1800" y="695.56" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">반력 증가 ≥ 5N이면 종료</text>
+<text x="1800" y="738.12" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">baseline_Fx - Fx로 계산</text>
+<text x="2310" y="583.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">후퇴 · 상승</text>
+<text x="2310" y="653.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">-X 방향 5mm 후퇴</text>
+<text x="2310" y="695.56" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">Z=320mm까지 수직 상승</text>
+<text x="2310" y="738.12" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="middle" dominant-baseline="text-before-edge" fill="#52645C">최대 25mm씩 힘 확인</text>
+<text x="2310" y="823.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="25" font-weight="600" text-anchor="middle" dominant-baseline="text-before-edge" fill="#146A5D">다음 → 현재 TCP에서 컵 이동</text>
+<polyline points="105,900 2495,900" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<polyline points="1300,950 1300,1380" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<text x="105" y="950.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">진입 판정</text>
+<text x="105" y="1018.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">Fx/Fz를 0.06초 간격으로 5회 측정해 각 성분을 평균</text>
+<text x="105" y="1085.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="600" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">Δ = √[(Fx - baseline_Fx)² + (Fz - baseline_Fz)²]</text>
+<text x="105" y="1175.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="52" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">1.3N / 연속 2회</text>
+<text x="105" y="1268.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">하강 후 0.4초 대기하고 확인 · 기준 미달이면 hit=0</text>
+<text x="105" y="1330.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">탐색과 추가 진입은 동일한 baseline으로 Δ를 계산</text>
+<text x="1380" y="950.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="35" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">Z 하한에서의 분기</text>
+<text x="1380" y="1018.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="52" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">115.29mm</text>
+<text x="1380" y="1110.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">hit=1이면 같은 높이에서 한 번 더 힘 측정</text>
+<text x="1380" y="1170.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">Δ ≥ 1.3N이면 접촉 확정 → 추가 진입 단계로</text>
+<text x="1380" y="1255.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">접촉 미검출 → Z=250mm까지 상승 → 실패 전달</text>
+<text x="1380" y="1330.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">벽 접근은 반력 감지 여부와 함께 최대 거리를 적용</text>
+<rect x="105" y="1460" width="2390" height="235" fill="#EFF7F2"/>
+<rect x="105" y="1460" width="8" height="235" fill="#A33E23"/>
+<text x="145" y="1494.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="53" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">15N</text>
+<text x="330" y="1508.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="32" font-weight="650" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">진입 델타 하드리밋</text>
+<text x="145" y="1585.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">탐색·하한 재확인·추가 진입에 적용</text>
+<text x="1410" y="1494.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="53" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">40N</text>
+<text x="1600" y="1508.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="32" font-weight="650" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">축별 절대 힘 제한</text>
+<text x="1410" y="1585.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">각 힘 측정에서 max(|Fx|, |Fy|, |Fz|) 확인</text>
+<text x="1320" y="1720.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="27" font-weight="500" text-anchor="middle" dominant-baseline="text-before-edge" fill="#1C2C29">힘 한계 도달 또는 센서 조회 오류 → 예외 전달 · 후속 동작 중단</text>
+</svg>

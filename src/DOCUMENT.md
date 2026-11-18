@@ -78,6 +78,10 @@ FastAPI만 DB에 직접 접근하고 UI와 ROS 노드는 SQL 구조를 알지 �
 
 ### 5.2 제조 단계
 
+![정상 제조 흐름을 12개 동작 묶음으로 표현한 타임라인](../docs/manufacturing_sequence.png)
+
+그림의 번호는 초기화, 배출과 이탈 등을 포함한 동작 묶음이며, 아래 표는 Action Feedback 단계 기준이다.
+
 | 순서 | Feedback 단계 | 담당 모듈 | 완료 기준 |
 |---:|---|---|---|
 | 1 | `CUP_PICK` | `CupMotion.pick()` | 컵 파지와 180° 뒤집기 |
@@ -233,6 +237,8 @@ erDiagram
 모션 반환값이 `None` 또는 `0`이 아니면 실패로 간주한다. `movej`, `movel`, `movejx` 공통 래퍼가 예외를 상위 제조 단계로 전달한다.
 
 ### 9.3 힘 기반 진입과 스쿠핑
+
+![접촉 탐색부터 추가 진입, CURL, 벽 접근과 후퇴·상승까지의 상태 전이](../docs/force_guided_scoop.png)
 
 `scoop.py`는 `motion_config.py`의 파라미터와 `RobotController.current_tcp_pose()`로 읽은 현재 TCP 위치를 사용한다. TCP와 도구 힘의 기준 좌표계는 `DR_BASE`다. TCP와 힘 조회 결과는 각각 유한한 값 6개인지 검사하며, 잘못된 반환값은 예외로 전달한다.
 

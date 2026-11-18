@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1500" viewBox="0 0 2600 1500" role="img" aria-labelledby="title desc">
+<title id="title">아이스크림 제조 타임라인</title><desc id="desc">한 주문의 제조 동작 12개를 준비, 접근, 스쿠핑, 컵 투입, 제공과 복귀의 다섯 구간으로 연결한 타임라인.</desc>
+<rect width="2600" height="1500" fill="#FFFFFF"/>
+<text x="105" y="65.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="650" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">ROS 2  /  DOOSAN M0609</text>
+<text x="105" y="125.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="74" font-weight="800" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">주문 한 건이 완성되는 흐름</text>
+<text x="108" y="232.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="30" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">MakeIcecream Action의 제조 동작 12개를 5개 구간으로 연결</text>
+<rect x="1010" y="325" width="520" height="885" fill="#EFF7F2"/>
+<text x="105" y="350.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="39" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">준비</text>
+<text x="590" y="350.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="39" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">스쿱 접근</text>
+<text x="1050" y="350.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="39" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">힘 기반 스쿠핑</text>
+<text x="1590" y="350.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="39" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">컵 투입</text>
+<text x="2120" y="350.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="39" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">제공·복귀</text>
+<polyline points="292,455 713,455" fill="none" stroke="#146A5D" stroke-width="4"/>
+<polygon points="713,455 695.0,447.0 695.0,463.0" fill="#146A5D"/>
+<polyline points="762,455 1243,455" fill="none" stroke="#146A5D" stroke-width="4"/>
+<polygon points="1243,455 1225.0,447.0 1225.0,463.0" fill="#146A5D"/>
+<polyline points="1292,455 1773,455" fill="none" stroke="#146A5D" stroke-width="4"/>
+<polygon points="1773,455 1755.0,447.0 1755.0,463.0" fill="#146A5D"/>
+<polyline points="1822,455 2283,455" fill="none" stroke="#146A5D" stroke-width="4"/>
+<polygon points="2283,455 2265.0,447.0 2265.0,463.0" fill="#146A5D"/>
+<circle cx="270" cy="455" r="19" fill="#146A5D"/>
+<circle cx="270" cy="455" r="8" fill="#FFFFFF"/>
+<circle cx="740" cy="455" r="19" fill="#146A5D"/>
+<circle cx="740" cy="455" r="8" fill="#FFFFFF"/>
+<circle cx="1270" cy="455" r="19" fill="#A33E23"/>
+<circle cx="1270" cy="455" r="8" fill="#FFFFFF"/>
+<circle cx="1800" cy="455" r="19" fill="#146A5D"/>
+<circle cx="1800" cy="455" r="8" fill="#FFFFFF"/>
+<circle cx="2310" cy="455" r="19" fill="#146A5D"/>
+<circle cx="2310" cy="455" r="8" fill="#FFFFFF"/>
+<polyline points="550,535 550,1150" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<polyline points="1000,535 1000,1150" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<polyline points="1540,535 1540,1150" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<polyline points="2070,535 2070,1150" fill="none" stroke="#D5E1D9" stroke-width="2"/>
+<text x="105" y="550.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">01</text>
+<text x="105" y="591.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">초기화 · 홈</text>
+<text x="105" y="646.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">TCP·I/O 설정 후 홈 이동</text>
+<text x="105" y="755.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">02</text>
+<text x="105" y="796.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">컵 파지 · 뒤집기</text>
+<text x="105" y="851.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">컵 파지·상승 → J6 -180°</text>
+<text x="105" y="960.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">03</text>
+<text x="105" y="1001.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">컵 배치</text>
+<text x="105" y="1056.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">배치·이탈 → J6 +180° 복귀</text>
+<text x="590" y="550.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">04</text>
+<text x="590" y="591.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">스쿱 파지</text>
+<text x="590" y="646.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">거치대에서 파지 후 상승</text>
+<text x="590" y="755.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">05</text>
+<text x="590" y="796.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">재료 위 접근</text>
+<text x="590" y="851.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">안전 경유점을 통과해</text>
+<text x="590" y="890.52" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">레인별 진입 위치로 이동</text>
+<text x="1050" y="550.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">06</text>
+<text x="1050" y="591.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="33" font-weight="750" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">접촉부터 이탈까지</text>
+<circle cx="1060" cy="677" r="4" fill="#146A5D"/>
+<text x="1082" y="665.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">접촉 감지</text>
+<text x="1082" y="708.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">1mm 하강 · 1.3N 연속 2회</text>
+<circle cx="1060" cy="776" r="4" fill="#146A5D"/>
+<text x="1082" y="764.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">추가 진입</text>
+<text x="1082" y="807.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">2mm씩 · 최대 7mm</text>
+<circle cx="1060" cy="875" r="4" fill="#146A5D"/>
+<text x="1082" y="863.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">수직화 · CURL</text>
+<text x="1082" y="906.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">회전과 X축 후퇴 결합</text>
+<circle cx="1060" cy="974" r="4" fill="#146A5D"/>
+<text x="1082" y="962.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">제한된 벽 접근</text>
+<text x="1082" y="1005.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">반력 감시 · 최대 6mm</text>
+<circle cx="1060" cy="1073" r="4" fill="#146A5D"/>
+<text x="1082" y="1061.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="28" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#146A5D">후퇴 · 수직 상승</text>
+<text x="1082" y="1104.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="24" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">-X 5mm 후퇴 → Z=320mm</text>
+<text x="1590" y="550.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">07</text>
+<text x="1590" y="591.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">컵 위 운반</text>
+<text x="1590" y="646.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">현재 TCP → 레인별 경유점</text>
+<text x="1590" y="755.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">08</text>
+<text x="1590" y="796.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">아이스크림 배출</text>
+<text x="1590" y="851.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">J6 -120° 회전 · 2초 대기</text>
+<text x="1590" y="960.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">09</text>
+<text x="1590" y="1001.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">이탈 · 자세 복귀</text>
+<text x="1590" y="1056.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">Z +50mm → J6 +120°</text>
+<text x="2120" y="550.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">10</text>
+<text x="2120" y="591.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">스쿱 반환</text>
+<text x="2120" y="646.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">Z +100mm 상승 후 거치</text>
+<text x="2120" y="755.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">11</text>
+<text x="2120" y="796.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">완성 컵 제공</text>
+<text x="2120" y="851.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">제공 후 주문 완료 피드백</text>
+<text x="2120" y="960.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="22" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">12</text>
+<text x="2120" y="1001.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="31" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">홈 복귀 · 주문 대기</text>
+<text x="2120" y="1056.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="26" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">홈 이동 · J6 보정 · IDLE</text>
+<polyline points="105,1265 2495,1265" fill="none" stroke="#1C2C29" stroke-width="2"/>
+<text x="105" y="1310.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="30" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#1C2C29">주문 완료와 로봇 준비를 구분</text>
+<text x="105" y="1372.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">제품 제공 완료 → 주문 COMPLETED     홈 복귀 성공 → 로봇 IDLE</text>
+<text x="1530" y="1310.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="30" font-weight="700" text-anchor="start" dominant-baseline="text-before-edge" fill="#A33E23">모션 오류 발생 시</text>
+<text x="1530" y="1372.0" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="29" font-weight="400" text-anchor="start" dominant-baseline="text-before-edge" fill="#52645C">후속 동작 중단 → 오류 상태 전달</text>
+</svg>
